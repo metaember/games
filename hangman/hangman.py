@@ -1,10 +1,13 @@
 from random import choice
+import os
+
 HIDDEN_LETTER = "_"
 
 file_name = 'word_dictionary.txt'
 
 def load_words():
-    with open(file_name, 'r') as fp:
+    file_path = os.path.join('hangman', file_name)
+    with open(file_path, 'r') as fp:
         data = fp.read()
 
     words = data.splitlines()
