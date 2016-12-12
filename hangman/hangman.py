@@ -1,6 +1,17 @@
 from random import choice
 HIDDEN_LETTER = "_"
 
+file_name = 'word_dictionary.txt'
+
+def load_words():
+    with open(file_name, 'r') as fp:
+        data = fp.read()
+
+    words = data.splitlines()
+    words = list(filter(None, words))  # Remove empty strings
+    return words
+
+
 def main(word):
     wordfound = [HIDDEN_LETTER for letter in word]
     stillPlaying = True
@@ -40,6 +51,5 @@ def main(word):
                 break
 
 
-WORDS = ["HAPPY", "DOG", "CALIFORNIA"]
-
+WORDS = load_words()
 main(choice(WORDS))
