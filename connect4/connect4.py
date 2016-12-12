@@ -81,6 +81,7 @@ while won is False:
 
     (x,y) = g.place(played_col, turn % 2 + 1)
     if g.check_win(x,y):
+        g.display()
         print("Player {} has won!".format(players[int(g.grid[x,y]) - 1]))
         won = True
 
