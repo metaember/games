@@ -64,6 +64,7 @@ while won is False:
     print("Turn {}, {} is playing.".format(turn, players[turn % 2]))
     valid_input = False
     while not valid_input:
+        g.display()
         try:
             played_col = int(input("What column to play? "))
         except ValueError:
@@ -79,7 +80,6 @@ while won is False:
 
 
     (x,y) = g.place(played_col, turn % 2 + 1)
-    g.display()
     if g.check_win(x,y):
         print("Player {} has won!".format(players[int(g.grid[x,y]) - 1]))
         won = True
