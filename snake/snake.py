@@ -12,7 +12,7 @@ args = parser.parse_args()
 
 
 class CONST :
-    diff = {'easy':400, 'med': 200, 'hard':100}
+    diff = {'easy': 400, 'med': 200, 'hard': 100}
     init_len = 3
     time_increment = diff[args.difficulty]
     board_size = 20
@@ -63,7 +63,7 @@ class Snake():
         self.food = food
 
     def score(self):
-        return len(self.pos)
+        return len(self.pos) + 1
 
     def init_snake(self):
         self.pos = deque()
@@ -91,16 +91,17 @@ class Snake():
             self.win.addch(to_remove[1],to_remove[0], ord(' '))
 
         if next_pos in self.pos:
-            print("Collision with self!")
+            curses.flash()
+            return "Collision with self!"
 
         if next_pos[0] in (0, CONST.board_size-1) or next_pos[1] in (0, CONST.board_size-1):
-            self.win.flash()
-            print("Collision with board sides!")
+            curses.flash()
+            return "Collision with board sides!"
 
 
         self.pos.append(next_pos)
         self.win.addch(next_pos[1], next_pos[0], ord('X'))
-
+        return None
 
 
 
@@ -133,7 +134,8 @@ def main (stdscr):
 
 
     turn = 0
-    while True:
+    alive = True
+    while alive:
         turn += 1
 
         win.box(0,0)
@@ -156,11 +158,18 @@ def main (stdscr):
         #elif c == -1:
             #print("nothing")
 
-        Sn.move(dx,dy)
+        status = Sn.move(dx,dy)
         win.move(0,0)
         win.refresh()
 
+        if status is not None:
+            alive = False
+            win.addstr(0,0,status)
+            win.addstr(1,0,"Survived {} turns.".format(turn))
+            win.addstr(2,0,"Snake length {}.".format(Sn.score()))
+            win.addstr(3, 0, "Press any key!")
 
+    c = win.getch()
 
 
 
