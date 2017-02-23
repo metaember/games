@@ -143,6 +143,8 @@ def main (stdscr):
         c = stdscr.getch()
         if c == ord('q'):
             break  # Exit the while()
+        elif c == ord('k'):
+            alive = False
         elif c == curses.KEY_UP:
             dx = 0
             dy = -1
@@ -162,7 +164,9 @@ def main (stdscr):
         win.move(0,0)
         win.refresh()
 
-        if status is not None:
+        if status is not None or alive is False:
+            if c == ord('k'): #death by suicide
+                status = "Harsh, man!"
             alive = False
             win.addstr(0,0,status)
             win.addstr(1,0,"Survived {} turns.".format(turn))
