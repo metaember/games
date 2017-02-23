@@ -11,7 +11,7 @@ class CONST :
 
 class CollisionError (Exception):
     def __init__ (self):
-        
+        pass
 
 
 class Food():
