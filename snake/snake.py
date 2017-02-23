@@ -27,6 +27,8 @@ class Food():
         self.win = win
         self.snake = snake
         self.pos = None
+        self.food_chars = ('@', '$', '%', '&', '&', '*')
+
         self.new()
 
     def new(self):
@@ -39,7 +41,7 @@ class Food():
             if pos not in self.snake.pos:
                 outside_snake = True
                 self.pos = pos
-                self.win.addch(y, x, ord('O'))
+                self.win.addch(y, x, ord(random.choice(self.food_chars)))
 
 
     def remove(self):
@@ -85,7 +87,7 @@ class Snake():
         if next_pos == self.pos[-2]:
             # we moved into ourselves 180 degrees
             # so we change to keep moving the same direction
-            next_pos = (curr[0]-dx, curr[1]-dy) 
+            next_pos = (curr[0]-dx, curr[1]-dy)
 
         if self.food is not None and next_pos == self.food.pos:
             print("Yum!")
@@ -178,7 +180,8 @@ def main (stdscr):
             win.addstr(2,0,"Snake length {}.".format(Sn.score()))
             win.addstr(3, 0, "Press any key!")
 
-    c = win.getch()
+    if c != ord('q'):
+        c = win.getch()
 
 
 
