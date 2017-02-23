@@ -1,12 +1,20 @@
+import argparse
+
 import numpy as np
 import curses
 from collections import deque
 import time
 import random
 
+parser = argparse.ArgumentParser(description='Play Snake!\n At any time press `q` to quit!')
+parser.add_argument('-d', '--difficulty', help="Difficulty", choices = ('easy', 'med', 'hard'), required=False, default='med')
+args = parser.parse_args()
+
+
 class CONST :
+    diff = {'easy':400, 'med': 200, 'hard':100}
     init_len = 3
-    time_increment = 0
+    time_increment = diff[args.difficulty]
     board_size = 20
 
 class CollisionError (Exception):
@@ -86,6 +94,7 @@ class Snake():
             print("Collision with self!")
 
         if next_pos[0] in (0, CONST.board_size-1) or next_pos[1] in (0, CONST.board_size-1):
+            self.win.flash()
             print("Collision with board sides!")
 
 
@@ -95,7 +104,7 @@ class Snake():
 
 
 
-board = np.ndarray((CONST.board_size,CONST.board_size))
+# board = np.ndarray((CONST.board_size,CONST.board_size))
 
 def main (stdscr):
     dx = 1
@@ -109,6 +118,8 @@ def main (stdscr):
     win = curses.newwin(height, width, begin_y, begin_x)
 
     #init the window
+    stdscr.timeout(CONST.time_increment)
+    #stdscr.nodelay(True)
     win.clear()
     win.box(0,0)
     win.refresh()
@@ -122,7 +133,7 @@ def main (stdscr):
 
 
     turn = 0
-    while 1:
+    while True:
         turn += 1
 
         win.box(0,0)
@@ -142,13 +153,13 @@ def main (stdscr):
         elif c == curses.KEY_LEFT:
             dx = -1
             dy = 0
-        else:
-            pass
+        #elif c == -1:
+            #print("nothing")
 
         Sn.move(dx,dy)
         win.move(0,0)
         win.refresh()
-        time.sleep(CONST.time_increment)
+
 
 
 
