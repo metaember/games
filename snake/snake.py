@@ -82,6 +82,11 @@ class Snake():
 
         next_pos = (curr[0]+dx, curr[1]+dy) #this will be the next square
 
+        if next_pos == self.pos[-2]:
+            # we moved into ourselves 180 degrees
+            # so we change to keep moving the same direction
+            next_pos = (curr[0]-dx, curr[1]-dy) 
+
         if self.food is not None and next_pos == self.food.pos:
             print("Yum!")
             self.food.eat()
