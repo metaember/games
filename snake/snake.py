@@ -12,7 +12,7 @@ args = parser.parse_args()
 
 
 class CONST :
-    diff = {'easy': 400, 'med': 200, 'hard': 100}
+    diff = {'easy': 500, 'med': 250, 'hard': 100}
     init_len = 3
     time_increment = diff[args.difficulty]
     board_size = 20
@@ -112,7 +112,9 @@ class Snake():
 
 
 
-# board = np.ndarray((CONST.board_size,CONST.board_size))
+def curr_ms():
+    """ Return time in ms """
+    return round(time.process_time()*1000) # in ms
 
 def main (stdscr):
     dx = 1
@@ -126,8 +128,7 @@ def main (stdscr):
     win = curses.newwin(height, width, begin_y, begin_x)
 
     #init the window
-    stdscr.timeout(CONST.time_increment)
-    #stdscr.nodelay(True)
+    stdscr.nodelay(True) # so that we don't wait for user input to move the time
     win.clear()
     win.box(0,0)
     win.refresh()
@@ -139,11 +140,14 @@ def main (stdscr):
     Sn.associate_food(food)
 
 
-
+    # initialize a couple of vars used to check state of the game at each loop
     turn = 0
     alive = True
+    status = None
+    last_update = curr_ms()
+
     while alive:
-        turn += 1
+
 
         win.box(0,0)
 
@@ -167,9 +171,13 @@ def main (stdscr):
         #elif c == -1:
             #print("nothing")
 
-        status = Sn.move(dx,dy)
-        win.move(0,0)
-        win.refresh()
+        curr = curr_ms()
+        if curr-last_update > CONST.time_increment:
+            last_update = curr_ms()
+            turn += 1
+            status = Sn.move(dx,dy)
+            win.move(0,0)
+            win.refresh()
 
         if status is not None or alive is False:
             if c == ord('k'): #death by suicide
