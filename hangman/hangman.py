@@ -20,7 +20,7 @@ def load_words():
     return words
 
 
-def disp_in_win(win, text, autocut = True, wait = True):
+def disp_in_win(win, text, autocut = True, delay = 0):
     nb_lines = win.getmaxyx()[0]-2
     max_len = win.getmaxyx()[1]-2 #-2 because border on each side
 
@@ -47,9 +47,12 @@ def disp_in_win(win, text, autocut = True, wait = True):
             win.addstr(i+1,1,text_list[i].strip()) # Write correct piece
 
     win.refresh()
-    if wait:
-        curses.napms(1500)
+    if delay > 0:
+        curses.napms(delay)
     return None
+
+def is_ascii(s):
+    return all(ord(c) < 128 for c in s)
 
 def main(stdscr, word):
 
@@ -70,34 +73,32 @@ def main(stdscr, word):
     pic_win.refresh()
 
 
-
-
-
     wordfound = [HIDDEN_LETTER for letter in word]
     stillPlaying = True
     lettersTried = set()
     lives = 10
 
-
+    disp_in_win(mess_win,"You have {} lives left.".format(lives))
 
     while stillPlaying:
 
-        disp_in_win(mess_win,"You have {} lives left.".format(lives), wait=False)
-        disp_in_win(text_win,"Word so far : {}".format(' '.join(wordfound)), wait=False)
+
+        disp_in_win(text_win,"Word so far : {}".format(' '.join(wordfound)))
         #disp_in_win(pic_win, "Hangman")
-        print_pic(pic_win, 10-lives+1)
+        print_pic(pic_win, 10-lives)
         stdscr.move(0,0)
 
         letter = ''
         # make robust
-        c = stdscr.getch()
-        if c == ord('!') or c== ord("1"):
-            stillPlaying = False
-            break  # Exit the while()
-        else:
-            letter = chr(c)
-            disp_in_win(mess_win,"You typed {}".format(letter))
-            #continue
+        while not (letter.isalpha() and is_ascii(letter)):
+            c = stdscr.getch()
+            if c == ord('!') or c== ord("1"):
+                stillPlaying = False
+                return
+            else:
+                letter = chr(c)
+                if not is_ascii(letter) or not letter.isalpha():
+                    disp_in_win(mess_win,"You typed `{}`. Please enter a valid letter!".format(letter))
 
         letter = letter.upper()
 
@@ -112,7 +113,8 @@ def main(stdscr, word):
             for i, l in enumerate(word):
                 if l == letter:
                     wordfound[i] = l
-            disp_in_win(mess_win,"Correct! The letter {} is indeed in the hidden word!".format(letter))
+            disp_in_win(mess_win,"Correct! The letter {} is indeed in the hidden word! \n"
+                                    "You have {} lives left.".format(letter, lives))
             if HIDDEN_LETTER not in wordfound:
                 stillPlaying = False
                 disp_in_win(mess_win,"You win! The word was {}. You had {} lives left!".format(word, lives))
@@ -124,8 +126,10 @@ def main(stdscr, word):
                                         "Lives left : {}.".format(letter, lives))
             if lives == 0:
                 stillPlaying = False
-                disp_in_win(mess_win,"You ran out of lives ! GAME OVER. The hidden word was {}".format(word))
-                curse.napms(1000)
+                disp_in_win(mess_win,"You ran out of lives ! GAME OVER."
+                            "The hidden word was {}\n Press any key to quit.".format(word))
+                print_pic(pic_win, 10-lives)
+                c = stdscr.getch() # in order to delay the quit
                 break
 
 
