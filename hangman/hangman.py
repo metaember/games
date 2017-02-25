@@ -20,24 +20,39 @@ def load_words():
     return words
 
 
-def disp_in_win(win, text, wait = True):
+def disp_in_win(win, text, autocut = True, delay = 0):
     nb_lines = win.getmaxyx()[0]-2
     max_len = win.getmaxyx()[1]-2 #-2 because border on each side
 
-    if len(text) > 2 * max_len:
+    if len(text) > nb_lines * max_len:
         raise ValueError("Text too long to print on {} lines!".format(nb_lines))
 
-    # cut text into max_len length pieces
-    text_list = [text[i*max_len:(i+1)*max_len] for i in range(nb_lines)]
+    if autocut:
+        # cut along the newline chars
+        text_list = text.split("\n")
+        if len(text_list) > nb_lines:
+            raise ValueError("Too many lines to fit!")
+
+        for line in text_list:
+            if len(line) > max_len:
+                raise ValueError("One of the lines ({}) is too long to print ({} > {})".format(line, len(line), max_len))
+
+    else:
+        # cut text into max_len length pieces
+        text_list = [text[i*max_len:(i+1)*max_len] for i in range(nb_lines)]
 
     for i in range(nb_lines):
         win.addstr(i+1,1," " * max_len)  #erase everything on line i +1 because of border
-        win.addstr(i+1,1,text_list[i]) # Write correct piece
+        if i < len(text_list): # stop trying to write if the text has less lines than window
+            win.addstr(i+1,1,text_list[i].strip()) # Write correct piece
 
     win.refresh()
-    if wait:
-        curses.napms(1500)
+    if delay > 0:
+        curses.napms(delay)
     return None
+
+def is_ascii(s):
+    return all(ord(c) < 128 for c in s)
 
 def main(stdscr, word):
 
@@ -53,8 +68,9 @@ def main(stdscr, word):
     text_win.box(0,0)
     text_win.refresh()
 
-
-
+    pic_win = curses.newwin(9, 11, 1, 73) # Window with word
+    pic_win.box(0,0)
+    pic_win.refresh()
 
 
     wordfound = [HIDDEN_LETTER for letter in word]
@@ -62,27 +78,33 @@ def main(stdscr, word):
     lettersTried = set()
     lives = 10
 
-
+    disp_in_win(mess_win,"You have {} lives left.".format(lives))
 
     while stillPlaying:
-        disp_in_win(mess_win,"You have {} lives left.".format(lives), False)
-        disp_in_win(text_win,"Word so far : {}".format(' '.join(wordfound)), False)
+
+
+        disp_in_win(text_win,"Word so far : {}".format(' '.join(wordfound)))
+        #disp_in_win(pic_win, "Hangman")
+        print_pic(pic_win, 10-lives)
+        stdscr.move(0,0)
 
         letter = ''
         # make robust
-        c = stdscr.getch()
-        if c == ord('!') or c== ord("1"):
-            stillPlaying = False
-            break  # Exit the while()
-        else:
-            letter = chr(c)
-            disp_in_win(mess_win,"You typed {}".format(letter))
-            #continue
+        while not (letter.isalpha() and is_ascii(letter)):
+            c = stdscr.getch()
+            if c == ord('!') or c== ord("1"):
+                stillPlaying = False
+                return
+            else:
+                letter = chr(c)
+                if not is_ascii(letter) or not letter.isalpha():
+                    disp_in_win(mess_win,"You typed `{}`. Please enter a valid letter!".format(letter))
 
         letter = letter.upper()
 
         if letter in lettersTried:
-            disp_in_win(mess_win, "You already tried letter : {}. Select another. (You have tried : {})".format(letter, ", ".join(sorted(lettersTried))))
+            disp_in_win(mess_win, "You already tried letter : {}. Select another.\n"
+                "(You have tried : {})".format(letter, ", ".join(sorted(lettersTried))))
             continue
         else :
             lettersTried.add(letter)
@@ -91,7 +113,8 @@ def main(stdscr, word):
             for i, l in enumerate(word):
                 if l == letter:
                     wordfound[i] = l
-            disp_in_win(mess_win,"Correct! The letter {} is indeed in the hidden word!".format(letter))
+            disp_in_win(mess_win,"Correct! The letter {} is indeed in the hidden word! \n"
+                                    "You have {} lives left.".format(letter, lives))
             if HIDDEN_LETTER not in wordfound:
                 stillPlaying = False
                 disp_in_win(mess_win,"You win! The word was {}. You had {} lives left!".format(word, lives))
@@ -99,11 +122,38 @@ def main(stdscr, word):
 
         else :
             lives -= 1
-            disp_in_win(mess_win,"The letter {} is not in the hidden word. You loose a life. Lives left : {}.".format(letter, lives))
+            disp_in_win(mess_win,"The letter {} is not in the hidden word.\n You loose a life. "
+                                        "Lives left : {}.".format(letter, lives))
             if lives == 0:
                 stillPlaying = False
-                disp_in_win(mess_win,"You ran out of lives ! GAME OVER. The hidden word was {}".format(word))
+                disp_in_win(mess_win,"You ran out of lives ! GAME OVER."
+                            "The hidden word was {}\n Press any key to quit.".format(word))
+                print_pic(pic_win, 10-lives)
+                c = stdscr.getch() # in order to delay the quit
                 break
+
+
+
+hangman_pic = {
+    0 : ["","","","","","",""],
+    1 : ["","","","","",""," ________"],
+    2 : ["", "|", "|", "|", "|", "|","|________" ],
+    3 : ["______", "|", "|", "|", "|", "|","|________" ],
+    4 : ["______", "|     |", "|", "|", "|", "|","|________" ],
+    5 : ["______", "|     |", "|     0", "|", "|", "|","|________" ],
+    6 : ["______", "|     |", "|     0", "|     |", "|     |", "|","|________" ],
+    7 : ["______", "|     |", "|     0", "|     |", "|     |", "|    /","|________" ],
+    8 : ["______", "|     |", "|     0", "|     |", "|     |", "|    / \\","|________" ],
+    9 : ["______", "|     |", "|     0", "|    /|", "|     |", "|    / \\","|________" ],
+    10 : ["______", "|     |", "|     0", "|    /|\\", "|     |", "|    / \\","|________" ]
+}
+
+def print_pic(win, level):
+    to_draw = hangman_pic[level]
+    for i in range(len(to_draw)):
+        win.addstr(i+1,1,to_draw[i])
+
+    win.refresh()
 
 
 
