@@ -117,7 +117,8 @@ def main(stdscr, word):
                                     "You have {} lives left.".format(letter, lives))
             if HIDDEN_LETTER not in wordfound:
                 stillPlaying = False
-                disp_in_win(mess_win,"You win! The word was {}. You had {} lives left!".format(word, lives))
+                disp_in_win(mess_win,"You win! The word was {}. You had {} lives left! \n Press any key to quit.".format(word, lives))
+                c = stdscr.getch() # in order to delay the quit
                 break
 
         else :
