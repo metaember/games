@@ -5,7 +5,7 @@ import numpy as np
 
 
 def get_random (table):
-    """ THIs has a bug"""
+    """ Places a random 1 or 2 in an empty square of the table"""
     # count empty slots
     tab = table.flatten()
     count = 0
@@ -13,8 +13,12 @@ def get_random (table):
         if item == 0:
             count += 1
 
+    if count == 0:
+        # No empty squares, we return None
+        return table
+
     # choose one at random
-    selected = randint(0,count-1)
+    selected = randint(1,count)
 
     # fill it with at random 1 or 2
     count = 0
@@ -30,13 +34,42 @@ def get_random (table):
     ans = np.reshape(tab, (4,4))
     return ans
 
-def table_to_row (table, direction):
-    if direction == curses.KEY_UP:
-        ans = [table[:i:-1] for i in range(4)]
+
+def reduce_row(row):
+    """ reduces one row, in the direction end --> start of list"""
+    # remove empty space below
+    while 0 in row:
+        row.remove(0)
+
+    # combine numbers if possible
+    idx = 0
+    end = len(row)
+    while idx < end:
+        if idx < end-1 and row[idx] == row [idx+1] != 0:
+            row.pop(idx) #remove item at idx
+            row[idx] += 1
+            end -= 1
+        idx += 1
+
+    # repad with 0's on the other end
+    row = row +[0]*(4-len(row))
+    return row
 
 def move(table, direction):
     """ Returns a table after the move has been completed"""
-    return table
+    rotations = {curses.KEY_DOWN: 3, curses.KEY_UP: 1, curses.KEY_LEFT:0, curses.KEY_RIGHT:2}
+
+    k = rotations[direction]
+    rotated = np.rot90(table, k) # flip to have the  "down" pointing left (so each row is correctly aligned)
+    rot_reduced = []
+    for r in rotated:
+        rot_reduced.append(reduce_row(r.tolist()))
+
+
+    ans = np.array(rot_reduced)
+    ans = np.rot90(ans, -k)
+
+    return ans
 
 
     # Get the columns / rows in the right direction
@@ -49,7 +82,7 @@ def move(table, direction):
 def disp(table, win):
     for y in range (1,5):
         for x in range(1,5):
-            char = table[x-1, y-1]
+            char = table[y-1, x-1]
             if char == 0:
                 char = " "
             else:
@@ -84,8 +117,15 @@ def main (stdscr):
                 stillPlaying = False
                 return
         table = move(table, letter)
-        table = get_random(table)
-        turn += 1
+        table_new = get_random(table)
+        if table_new is table:
+            # Todo: move cursor to display this text lower
+            print("No empty squares: game is over! You survived {} turns, with a score of {}. Press any key to quit.".format(turn, table.max()))
+            stdscr.getch()
+            return
+        else:
+            table = table_new
+            turn += 1
 
 
 
