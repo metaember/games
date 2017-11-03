@@ -27,7 +27,8 @@ class Square:
         else:
             return str(self.val) if self.val > 0 else SEEN
 
-
+    def is_correct(self):
+        return (self.isFlag and self.isMine) or self.isSeen
 
 
 class Minesweeper:
@@ -96,6 +97,12 @@ class Minesweeper:
                     if n not in self.explored:
                         self.explore(*n)
 
+    def check_win(self):
+        for i in range(self.size):
+            for j in range(self.size):
+                if not self.map[i][j].is_correct():
+                    return False
+        return True
 
     def play(self):
         gameover = False
@@ -144,8 +151,13 @@ class Minesweeper:
             self.disp()
             print()
 
+            if self.check_win():
+                print("You win!")
+                break
+
 
 if __name__ == "__main__":
-    M = Minesweeper(8,10)
+    easy = (8,10)
+    M = Minesweeper(3,1)
     M.disp(False)
     M.play()
