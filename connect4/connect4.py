@@ -6,7 +6,7 @@ class Grid:
     def __init__(self, width = 7, height = 7):
         self.width = width
         self.height = height
-        self.grid = np.zeros((7,7))
+        self.grid = np.zeros((self.width, self.height))
         self.WIN_MIN = 4
 
 
@@ -59,9 +59,9 @@ players = (player1, player2)
 
 print("{} is playing {} and {} is playing {}".format(player1,Grid.SYMBOLS[1],player2,Grid.SYMBOLS[2]))
 
-won = False
+won = tie = False
 turn  = 0
-while won is False:
+while not won and not tie:
     print("Turn {}, {} is playing.".format(turn, players[turn % 2]))
     valid_input = False
     while not valid_input:
@@ -81,10 +81,15 @@ while won is False:
 
 
     (x,y) = g.place(played_col, turn % 2 + 1)
+    turn += 1
+
     if g.check_win(x,y):
         g.display()
         print("Player {} has won!".format(players[int(g.grid[x,y]) - 1]))
         won = True
 
-
-    turn += 1
+    elif turn == g.width*g.height:
+        # no more squares to go to
+        tie = True
+        g.display()
+        print("No more valid squares ... It's a tie!")
