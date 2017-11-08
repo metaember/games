@@ -29,7 +29,9 @@ class Grid:
         player = self.grid[row,col]
         directions = [(i,j) for i in (-1,0,1) for j in (-1,0,1) if (i,j) != (0,0)]
         for increments in directions:
-            if self.check_win_dir(row, col, *increments):
+            curr_conseq = self.check_win_dir(row, col, *increments)
+            curr_conseq += self.check_win_dir(row, col, -increments[0], -increments[1])
+            if curr_conseq >= self.WIN_MIN:
                 print("checking direction {}".format(increments))
                 return True
         return False
@@ -44,10 +46,9 @@ class Grid:
                 col += increment_col
                 count += 1
 
+        return count
 
-        return count >= self.WIN_MIN
-
-print("Welcom to connect four. Please enter the player names!")
+print("Welcome to connect four. Please enter the player names!")
 g = Grid()
 
 player1 = input("Please enter the neame of the first player ... ")
