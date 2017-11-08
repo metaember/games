@@ -27,12 +27,12 @@ class Grid:
 
     def check_win(self, row, col):
         player = self.grid[row,col]
-        directions = [(i,j) for i in (-1,0,1) for j in (-1,0,1) if (i,j) != (0,0)]
+        directions = [(1,0), (1,1), (0,1), (1,-1)] # since directions are bidirectional, we only need 4 not 8
         for increments in directions:
             curr_conseq = self.check_win_dir(row, col, *increments)
             curr_conseq += self.check_win_dir(row, col, -increments[0], -increments[1])
+            curr_conseq -= 1
             if curr_conseq >= self.WIN_MIN:
-                print("checking direction {}".format(increments))
                 return True
         return False
 
